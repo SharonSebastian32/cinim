@@ -3,7 +3,12 @@ import Booking from "../models/seatmodel.js";
 
 export const createBooking = async (req, res) => {
   try {
-    const bookingsArray = req.body; // array of booking objects
+    let bookingsArray = req.body;
+
+    // If client sends single object, wrap it in array
+    if (!Array.isArray(bookingsArray)) {
+      bookingsArray = [bookingsArray];
+    }
 
     if (!bookingsArray || bookingsArray.length === 0) {
       return res.status(400).json({
@@ -26,7 +31,7 @@ export const createBooking = async (req, res) => {
         });
       }
 
-      // Check if any seat is already booked
+      // Check for already booked seats
       const existingBooking = await Booking.findOne({
         seatIds: { $in: seatIds },
         status: "booked",
@@ -43,7 +48,6 @@ export const createBooking = async (req, res) => {
         });
       }
 
-      // Save booking
       const booking = new Booking({
         seats,
         seatIds,
@@ -57,7 +61,7 @@ export const createBooking = async (req, res) => {
 
     res.status(201).json({
       status: "success",
-      //   data: savedBookings,
+      data: savedBookings,
       message: "Booking(s) created successfully",
     });
   } catch (error) {
